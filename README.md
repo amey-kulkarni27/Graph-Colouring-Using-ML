@@ -25,4 +25,6 @@ It is crucial that we ensure that 'k' is the lowest number for which we can call
         1. 0 if chosen vertices are from the same partition.
         2. 1 if chosen vertices are from different partitions.
 
-## Neighbourhood Diversity
+## Vertex Features
+1. Number of neighbours
+2. Leaf or Not
