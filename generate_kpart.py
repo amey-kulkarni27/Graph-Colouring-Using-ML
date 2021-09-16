@@ -50,5 +50,4 @@ def gen_kpart(k, n, p):
 
     # Set node coordinates
     coords_dict = set_coords(k, n)
-    display_graph(G, coords_dict)
-    return G
+    return G, coords_dict
