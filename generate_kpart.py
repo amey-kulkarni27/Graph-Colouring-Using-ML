@@ -16,7 +16,7 @@ def set_coords(k, n):
             y -= n + delta * i
     return coords
 
-def display_graph(G, coords):
+def display_graph(G, coords=None):
     nx.draw(G, with_labels=True, font_weight='bold', pos=coords)
     plt.show()
 
@@ -50,6 +50,5 @@ def gen_kpart(k, n, p):
 
     # Set node coordinates
     coords_dict = set_coords(k, n)
-    display_graph(G, coords_dict)
-
-gen_kpart(3, 4, 0.4)
+    # display_graph(G, coords_dict)
+    return G
