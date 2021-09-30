@@ -33,10 +33,8 @@ def topk_fv(G, k):
     A = np.array(A)
     A = A.astype(float)
     eigvals, eigvecs = eigs(A, k=k) # Top k eigenvectors
-    print(eigvals)
     fv = eigvecs
     # fv = list(map(list, zip(*eigvecs)))
-    print(len(fv), len(fv[0]))
     return fv
 
 def feature_vector(G, method='topk'):
