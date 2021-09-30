@@ -1,5 +1,6 @@
+import numpy as np
 from networkx.linalg.graphmatrix import adjacency_matrix
-from scipy.linalg import eigh
+from scipy.sparse.linalg import eigs
 from scipy.linalg.decomp import eig
 
 def manual_fv(G):
@@ -28,9 +29,14 @@ def topk_fv(G, k):
     Return -> N x k matrix, every node has a feature vector of dimension k
     '''
     N = len(G.nodes)
-    A = adjacency_matrix(G)
-    eigvecs = eigh(A.todense(), eigvals=(N - k, N - 1))
-    fv = list(map(list, zip(*eigvecs))) # Top k eigenvectors
+    A = adjacency_matrix(G).todense()
+    A = np.array(A)
+    A = A.astype(float)
+    eigvals, eigvecs = eigs(A, k=k) # Top k eigenvectors
+    print(eigvals)
+    fv = eigvecs
+    # fv = list(map(list, zip(*eigvecs)))
+    print(len(fv), len(fv[0]))
     return fv
 
 def feature_vector(G, method='topk'):
@@ -47,7 +53,7 @@ def feature_vector(G, method='topk'):
     if method == 'custom':
         fv = manual_fv(G)
     elif method == 'topk':
-        fv = topk_fv(G, N**0.5)
+        fv = topk_fv(G, int(N**0.5))
     # elif method == 'node2vec':
     #     fv = node2vec(G)
     
