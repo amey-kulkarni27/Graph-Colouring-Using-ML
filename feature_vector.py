@@ -32,7 +32,8 @@ def topk_fv(G, k):
     A = adjacency_matrix(G).todense()
     A = np.array(A)
     A = A.astype(float)
-    eigvals, eigvecs = eigs(A, k=k) # Top k eigenvectors
+    _, eigvecs = eigs(A, k=k) # Top k eigenvectors
+    eigvecs = np.real(eigvecs)
     fv = eigvecs
     # fv = list(map(list, zip(*eigvecs)))
     return fv

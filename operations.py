@@ -27,17 +27,17 @@ def vertex_pair_opt(G):
     edges = random.sample(Gdash.edges(), 1)
     return edges[0]
 
-def operations(G, merge, nodes):
+def operations(G, action, nodes):
     '''
     G -> Graph on which we perform the operation
     merge -> Boolean variable
-    - True: Perform the "Merge" operation, combine two nodes
-    - False: Perform the "Add Edge" operation, add an edge between two nodes
+    - 0: Perform the "Merge" operation, combine two nodes
+    - 1: Perform the "Add Edge" operation, add an edge between two nodes
     nodes -> Tuple containing the two nodes on which we perform the given operation
 
     Return: Modified graph after operation
     '''
-    if merge:
+    if action==0:
         G = nx.contracted_nodes(G, nodes[0], nodes[1])
     else:
         G.add_edge(nodes[0], nodes[1])
@@ -68,3 +68,18 @@ def get_label(n, merge, nodes):
             return 0
         else:
             return 1
+
+def get_action(n, nodes):
+    '''
+    n -> Number of nodes in each of the independent sets
+    nodes -> Tuple containing the two nodes on which we perform the given operation
+
+    Return: 0/1 action, denoting whether the operation was merge or join
+    0: if vertices belonging to independent set merged
+    1: if added edge between non-independent set vertices
+    '''
+    u, v = nodes
+    if u // n == v // n:
+        return 0
+    else:
+        return 1
