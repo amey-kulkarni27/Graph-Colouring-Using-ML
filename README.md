@@ -32,7 +32,7 @@ It is crucial that we ensure that 'k' is the lowest number for which we can call
 ## Suggestion
 1. Adjacency Matrix
 2. Calculate top-k eigenvectors-> v_1, v_2... v_k
-3. V matrix of k eigenvectors n X k.
+3. V matrix of k eigenvectors nxk.
 4. Each row of this matrix (length k)
 5. For vertex pair (u, v), we take uth and vth row and stack them together.
 6. Training. 2k size feature vector. Label -> 'L' or 'R'.
