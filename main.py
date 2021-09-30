@@ -7,7 +7,7 @@ import random
 
 num_graphs = 1
 k = 3
-n = 50 # Number of nodes in a single partition
+n = 4 # Number of nodes in a single partition
 p = 0.4
 G_list = [gen_kpart(k, n, p) for i in range(num_graphs)]
 for G, coords in G_list:
@@ -16,7 +16,6 @@ for G, coords in G_list:
     # nodes = vertex_pair(G, n * k)
     nodes = vertex_pair_opt(G)
     label = get_label(n, merge, nodes)
-    print(merge, nodes, label)
     display_graph(G, coords)
     G = operations(G, merge, nodes)
     display_graph(G, coords)

@@ -1,4 +1,8 @@
-def feature_vector(G):
+from networkx.linalg.graphmatrix import adjacency_matrix
+from scipy.linalg import eigh
+from scipy.linalg.decomp import eig
+
+def manual_fv(G):
     '''
     G -> Input Graph
 
@@ -10,8 +14,41 @@ def feature_vector(G):
     '''
     N = len(G.nodes)
     f = 2 # Only 2 features currently
-    vec = [[0, 0] for i in range(N)]
+    fv = [[0, 0] for i in range(N)]
     for i in range(N):
-        vec[i][0] = len([i for i in G.neighbors(i)])
-        vec[i][1] = (vec[i][0] == 1)
-    return vec
+        fv[i][0] = len([i for i in G.neighbors(i)])
+        fv[i][1] = (fv[i][0] == 1)
+    return fv
+
+def topk_fv(G, k):
+    '''
+    G -> Input Graph
+    k -> Top number of eigenvector rows to be chosen
+
+    Return -> N x k matrix, every node has a feature vector of dimension k
+    '''
+    N = len(G.nodes)
+    A = adjacency_matrix(G)
+    eigvecs = eigh(A.todense(), eigvals=(N - k, N - 1))
+    fv = list(map(list, zip(*eigvecs))) # Top k eigenvectors
+    return fv
+
+def feature_vector(G, method='topk'):
+    '''
+    G -> Input Graph
+    method -> Method for calculating feature vector, options include:
+              1. 'custom': manual features
+              2. 'topk': Top k eigenvectors
+              3. 'node2vec': Node2vec assigns features
+
+    Return -> N feature vectors
+    '''
+    N = len(G.nodes)
+    if method == 'custom':
+        fv = manual_fv(G)
+    elif method == 'topk':
+        fv = topk_fv(G, N**0.5)
+    # elif method == 'node2vec':
+    #     fv = node2vec(G)
+    
+    return fv
