@@ -38,6 +38,7 @@ It is crucial that we ensure that 'k' is the lowest number for which we can call
 6. Training. 2k size feature vector. Label -> 'L' or 'R'.
 7. Update the Graph after each operation
 8. (Training) For now, choose a small number of small graphs to be generated. Operate on them to completion.
+9. Logistic Regression for testing.
 
 ## Rough
 Example -> (u, v) (n_u, n_v, n_u and n_v, p_{uv})
