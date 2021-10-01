@@ -38,7 +38,7 @@ def topk_fv(G, k):
     # fv = list(map(list, zip(*eigvecs)))
     return fv
 
-def feature_vector(G, method='topk'):
+def feature_vector(G, method='topk', k=3):
     '''
     G -> Input Graph
     method -> Method for calculating feature vector, options include:
@@ -52,7 +52,7 @@ def feature_vector(G, method='topk'):
     if method == 'custom':
         fv = manual_fv(G)
     elif method == 'topk':
-        fv = topk_fv(G, int(N**0.5))
+        fv = topk_fv(G, k=k)
     # elif method == 'node2vec':
     #     fv = node2vec(G)
     

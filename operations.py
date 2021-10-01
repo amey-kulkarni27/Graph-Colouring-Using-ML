@@ -19,11 +19,12 @@ def vertex_pair_opt(G):
     G -> Graph on which we perform the operation
 
     Return: Pair of vertices that do not share an edge between them
+    If G is a complete graph, return False
     '''
     Gdash = nx.complement(G)
     if len(Gdash.edges()) == 0:
-        print("Exception: Complete graph given")
-        return None
+        # print("Exception: Complete graph given")
+        return False
     edges = random.sample(Gdash.edges(), 1)
     return edges[0]
 
@@ -69,9 +70,9 @@ def get_label(n, merge, nodes):
         else:
             return 1
 
-def get_action(n, nodes):
+def get_action(G, nodes):
     '''
-    n -> Number of nodes in each of the independent sets
+    G -> Graph on which we perform the operation
     nodes -> Tuple containing the two nodes on which we perform the given operation
 
     Return: 0/1 action, denoting whether the operation was merge or join
@@ -79,7 +80,7 @@ def get_action(n, nodes):
     1: if added edge between non-independent set vertices
     '''
     u, v = nodes
-    if u // n == v // n:
+    if G.nodes[u]['colour'] == G.nodes[v]['colour']:
         return 0
     else:
         return 1

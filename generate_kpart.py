@@ -20,6 +20,14 @@ def display_graph(G, coords=None):
     nx.draw(G, with_labels=True, font_weight='bold', pos=coords)
     plt.show()
 
+def set_colour(G, n, k):
+    '''
+    Give a different colour to each partition
+    '''
+    for u in range(n * k):
+        col = u // n
+        G.nodes[u]['colour'] = col
+
 def gen_kpart(k, n, p):
     '''
     k -> minimum number of independent sets
@@ -36,6 +44,7 @@ def gen_kpart(k, n, p):
 
     G = nx.Graph()
     G.add_nodes_from([i for i in range(N)])
+    set_colour(G, n, k)
     # Create a k-clique
     G.add_edges_from([(i, j) for i in range(0, N, n) for j in range(i + n, N, n)])
     # Add edges with probability p
@@ -48,6 +57,7 @@ def gen_kpart(k, n, p):
                 if x < p:
                     G.add_edge(j, l)
 
+    # print(G.nodes.data())
     # Set node coordinates
     coords_dict = set_coords(k, n)
     return G, coords_dict
