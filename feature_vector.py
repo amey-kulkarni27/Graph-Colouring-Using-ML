@@ -2,6 +2,7 @@ import numpy as np
 from networkx.linalg.graphmatrix import adjacency_matrix
 from scipy.sparse.linalg import eigs
 from scipy.linalg.decomp import eig
+from node2vec import Node2Vec
 
 def manual_fv(G):
     '''
@@ -38,6 +39,18 @@ def topk_fv(G, k):
     # fv = list(map(list, zip(*eigvecs)))
     return fv
 
+def node2vec_fv(G, k=32):
+    '''
+    G -> Input Graph
+
+    Return -> N feature vectors
+    '''
+    node2vec = Node2Vec(G, dimensions=k, walk_length=30, num_walks=200, workers=4)  # Use temp_folder for big graphs
+    # # Embed nodes
+    model = node2vec.fit(window=10, min_count=1, batch_words=4)  # Any keywords acceptable by gensim.Word2Vec can be passed, `dimensions` and `workers` are automatically passed (from the Node2Vec constructor)
+    fv = model.wv[[i for i in range(len(G.nodes))]]
+    return fv
+
 def feature_vector(G, method='topk', k=3):
     '''
     G -> Input Graph
@@ -53,7 +66,7 @@ def feature_vector(G, method='topk', k=3):
         fv = manual_fv(G)
     elif method == 'topk':
         fv = topk_fv(G, k=k)
-    # elif method == 'node2vec':
-    #     fv = node2vec(G)
+    elif method == 'node2vec':
+        fv = node2vec_fv(G, k)
     
     return fv

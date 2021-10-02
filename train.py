@@ -4,7 +4,7 @@ from feature_vector import feature_vector
 from generate_kpart import display_graph
 import networkx as nx
 
-def train(G, coords, X, y, n, interval=3):
+def train(G, coords, X, y, n, interval=1):
     '''
     G -> Graph on which we train
     X -> Feature vectors to be appended
@@ -19,7 +19,7 @@ def train(G, coords, X, y, n, interval=3):
     z=0
     while (vertex_pair_opt(G)) != False:
         if cnt == 0:
-            vec = feature_vector(G, method='topk', k=2)
+            vec = feature_vector(G, method='node2vec', k=32)
             N = len(G.nodes)
             mapping = {old: new for (old, new) in zip(G.nodes, [i for i in range(N)])}
             G = nx.relabel_nodes(G, mapping)
@@ -28,7 +28,6 @@ def train(G, coords, X, y, n, interval=3):
         nodes = vertex_pair_opt(G)
         action = get_action(G, nodes)
         x = np.concatenate((vec[nodes[0]], vec[nodes[1]]))
-        # print(x.shape)
         X.append(x)
         y.append(action)
         G = operations(G, action, nodes)
@@ -36,4 +35,3 @@ def train(G, coords, X, y, n, interval=3):
         cnt += 1
         cnt %= interval
         z+=1
-    print(z)
