@@ -4,12 +4,13 @@ from feature_vector import feature_vector
 from generate_kpart import display_graph
 import networkx as nx
 
-def train(G, coords, X, y, n, interval=1):
+def train(G, coords, X, y, n, k, interval=1):
     '''
     G -> Graph on which we train
     X -> Feature vectors to be appended
     y -> Labels to be appended
     n -> Number of nodes in each of the independent sets
+    k -> Number of independent sets
     interval -> Feature vector for graph to be updated in these many steps
     
     Update X and y as the graph is completed edge by edge
@@ -19,8 +20,8 @@ def train(G, coords, X, y, n, interval=1):
     z=0
     while (vertex_pair_opt(G)) != False:
         if cnt == 0:
-            vec = feature_vector(G, method='node2vec', k=32)
             N = len(G.nodes)
+            vec = feature_vector(G, method='topk', k=k)
             mapping = {old: new for (old, new) in zip(G.nodes, [i for i in range(N)])}
             G = nx.relabel_nodes(G, mapping)
 
