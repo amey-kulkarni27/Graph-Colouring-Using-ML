@@ -14,7 +14,7 @@ G_train_list = [gen_kpart(k, n, p) for i in range(num_graphs)]
 G_test_list = G_train_list[:]
 X = []
 y = []
-update_interval = 1
+update_interval = 5
 for G, coords in G_train_list:
     Gdash = copy.deepcopy(G)
     train(Gdash, coords, X, y, n, k, update_interval)

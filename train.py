@@ -20,10 +20,7 @@ def train(G, coords, X, y, n, k, interval=1):
     z=0
     while (vertex_pair_opt(G)) != False:
         if cnt == 0:
-            N = len(G.nodes)
             vec = feature_vector(G, method='topk', k=k-1)
-            mapping = {old: new for (old, new) in zip(G.nodes, [i for i in range(N)])}
-            G = nx.relabel_nodes(G, mapping)
 
         # nodes = vertex_pair(G, n * k)
         nodes = vertex_pair_opt(G)
@@ -36,3 +33,6 @@ def train(G, coords, X, y, n, k, interval=1):
         cnt += 1
         cnt %= interval
         z+=1
+        N = len(G.nodes)
+        mapping = {old: new for (old, new) in zip(G.nodes, [i for i in range(N)])}
+        G = nx.relabel_nodes(G, mapping)
