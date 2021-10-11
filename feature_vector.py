@@ -37,6 +37,7 @@ def topk_fv(G, k):
     eigvecs = np.real(eigvecs)
     fv = eigvecs
     # fv = list(map(list, zip(*eigvecs)))
+    # print(fv.shape)
     return fv
 
 def node2vec_fv(G, k=32):

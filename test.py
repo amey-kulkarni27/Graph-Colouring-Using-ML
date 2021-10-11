@@ -1,20 +1,29 @@
 import numpy as np
-from operations import operations, vertex_pair, vertex_pair_opt, get_action
+from operations import operations, vertex_pair_opt
 from feature_vector import feature_vector
 from generate_kpart import display_graph
 import networkx as nx
+import copy
 
-def train(G, coords, X, y, n, k, interval=1):
+def correctness(G_init, G):
+    for u in G.nodes():
+        lbls = list(G.nodes[u]['label'])
+        for i in range(len(lbls)):
+            for j in range(i + 1, len(lbls)):
+                assert(G_init.has_edge(lbls[i], lbls[j]) == False)
+
+def test(G, coords, clf, n, k, interval=1):
     '''
     G -> Graph on which we train
-    X -> Feature vectors to be appended
-    y -> Labels to be appended
     n -> Number of nodes in each of the independent sets
     k -> Number of independent sets
     interval -> Feature vector for graph to be updated in these many steps
+    clf -> Classifier that has been trained
     
-    Update X and y as the graph is completed edge by edge
+    Perform actions on X and y depending upon the classifier
     '''
+    
+    G_init = copy.deepcopy(G)
     # display_graph(G, coords)
     cnt = 0
     z=0
@@ -25,14 +34,17 @@ def train(G, coords, X, y, n, k, interval=1):
             mapping = {old: new for (old, new) in zip(G.nodes, [i for i in range(N)])}
             G = nx.relabel_nodes(G, mapping)
 
-        # nodes = vertex_pair(G, n * k)
         nodes = vertex_pair_opt(G)
-        action = get_action(G, nodes)
         x = np.concatenate((vec[nodes[0]], vec[nodes[1]]))
-        X.append(x)
-        y.append(action)
+        x = x.reshape(1, -1)
+        action = clf.predict(x)
         G = operations(G, action, nodes)
         # display_graph(G, coords)
         cnt += 1
         cnt %= interval
         z+=1
+    print(len(G.nodes()), k)
+
+    correctness(G_init, G)
+    
+    

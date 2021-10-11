@@ -26,7 +26,14 @@ def set_colour(G, n, k):
     '''
     for u in range(n * k):
         col = u // n
-        G.nodes[u]['colour'] = col
+        G.nodes[u]['colour'] = set([col])
+
+def set_label(G, n, k):
+    '''
+    Give a label to each node. These can be merged later on
+    '''
+    for u in range(n * k):
+        G.nodes[u]['label'] = set([u])
 
 def gen_kpart(k, n, p):
     '''
@@ -45,6 +52,7 @@ def gen_kpart(k, n, p):
     G = nx.Graph()
     G.add_nodes_from([i for i in range(N)])
     set_colour(G, n, k)
+    set_label(G, n, k)
     # Create a k-clique
     G.add_edges_from([(i, j) for i in range(0, N, n) for j in range(i + n, N, n)])
     # Add edges with probability p

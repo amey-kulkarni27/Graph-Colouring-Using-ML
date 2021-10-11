@@ -39,7 +39,13 @@ def operations(G, action, nodes):
     Return: Modified graph after operation
     '''
     if action==0:
+        assert(nodes[0] < nodes[1])
+        # Larger node gets merged into the smaller
+        G.nodes[nodes[0]]['label'].update(G.nodes[nodes[1]]['label'])
+        G.nodes[nodes[0]]['colour'].update(G.nodes[nodes[1]]['colour'])
         G = nx.contracted_nodes(G, nodes[0], nodes[1])
+        # print(G.nodes[nodes[0]])
+        # print()
     else:
         G.add_edge(nodes[0], nodes[1])
     return G
