@@ -1,4 +1,5 @@
 # Graph-Colouring-Using-ML
+ML for optimisation.
 Trying out an ML technique to see if it can work for the problem of graph colouring.
 
 ## Procedure
