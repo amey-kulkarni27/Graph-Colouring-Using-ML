@@ -4,7 +4,7 @@ from feature_vector import feature_vector
 from generate_kpart import display_graph
 import networkx as nx
 
-def train(G, coords, X, y, n, k, interval=1):
+def train(G, coords, X, y, n, k, interval=1, method="top_k"):
     '''
     G -> Graph on which we train
     X -> Feature vectors to be appended
@@ -20,7 +20,7 @@ def train(G, coords, X, y, n, k, interval=1):
     z=0
     while (vertex_pair_non_edge(G)) != False:
         if cnt == 0:
-            vec = feature_vector(G, method='node2vec', k=k-1)
+            vec = feature_vector(G, method=method, k=k)
 
         # nodes = vertex_pair(G, n * k)
         nodes = vertex_pair_non_edge(G)

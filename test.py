@@ -16,7 +16,7 @@ def correctness(G_init, G):
                     # display_graph(G)
                 assert(G_init.has_edge(lbls[i], lbls[j]) == False)
 
-def test(G, coords, clf, n, k, interval=1):
+def test(G, coords, clf, n, k, interval=1, method="top_k"):
     '''
     G -> Graph on which we test
     n -> Number of nodes in each of the independent sets
@@ -32,7 +32,7 @@ def test(G, coords, clf, n, k, interval=1):
     cnt = 0
     while (vertex_pair_non_edge(G)) != False:
         if cnt == 0:
-            vec = feature_vector(G, method='node2vec', k=k-1)
+            vec = feature_vector(G, method=method, k=k)
 
         nodes = vertex_pair_non_edge(G)
         x = np.concatenate((vec[nodes[0]], vec[nodes[1]]))
@@ -45,10 +45,9 @@ def test(G, coords, clf, n, k, interval=1):
         N = len(G.nodes)
         mapping = {old: new for (old, new) in zip(G.nodes, [i for i in range(N)])}
         G = nx.relabel_nodes(G, mapping)
-    print(len(G.nodes()), k)
-    # display_graph(G, coords)
+    display_graph(G, coords)
 
     # correctness(G_init, G)
-    return len(G.nodes())
+    return G
     
     
