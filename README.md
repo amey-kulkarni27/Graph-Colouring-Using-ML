@@ -41,11 +41,11 @@ It is crucial that we ensure that 'k' is the lowest number for which we can call
 8. (Training) For now, choose a small number of small graphs to be generated. Operate on them to completion.
 9. Logistic Regression for testing.
 
-## Rough
-Example -> (u, v) (n_u, n_v, n_u and n_v, p_{uv})
-Node2Vec
-Some node pairs may have both operations valid
-
 ## Check
 1. Does Node2Vec change drastically over a few operations?
 2. Update or not
+
+## Comments
+1. topk gives ARPACK error for larger number of partitions. In such cases, k//2 **seems to** solve the problem.
+2. topk does not reduce the number of nodes for larger number of nodes, that is, we never use the merge operation.
+3. There is another step (other than the calculate feature vector step), that is time intensive.
