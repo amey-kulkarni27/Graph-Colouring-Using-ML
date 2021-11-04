@@ -1,5 +1,5 @@
 import numpy as np
-from operations import operations, vertex_pair_opt
+from operations import operations, vertex_pair_opt, vertex_pair_non_edge
 from feature_vector import feature_vector
 from generate_kpart import display_graph
 import networkx as nx
@@ -10,11 +10,15 @@ def correctness(G_init, G):
         lbls = list(G.nodes[u]['label'])
         for i in range(len(lbls)):
             for j in range(i + 1, len(lbls)):
+                # if G_init.has_edge(lbls[i], lbls[j]):
+                    # print(lbls[i], lbls[j])
+                    # display_graph(G_init)
+                    # display_graph(G)
                 assert(G_init.has_edge(lbls[i], lbls[j]) == False)
 
 def test(G, coords, clf, n, k, interval=1):
     '''
-    G -> Graph on which we train
+    G -> Graph on which we test
     n -> Number of nodes in each of the independent sets
     k -> Number of independent sets
     interval -> Feature vector for graph to be updated in these many steps
@@ -26,12 +30,11 @@ def test(G, coords, clf, n, k, interval=1):
     G_init = copy.deepcopy(G)
     # display_graph(G, coords)
     cnt = 0
-    z=0
-    while (vertex_pair_opt(G)) != False:
+    while (vertex_pair_non_edge(G)) != False:
         if cnt == 0:
-            vec = feature_vector(G, method='topk', k=k-1)
+            vec = feature_vector(G, method='node2vec', k=k-1)
 
-        nodes = vertex_pair_opt(G)
+        nodes = vertex_pair_non_edge(G)
         x = np.concatenate((vec[nodes[0]], vec[nodes[1]]))
         x = x.reshape(1, -1)
         action = clf.predict(x)
@@ -39,12 +42,13 @@ def test(G, coords, clf, n, k, interval=1):
         # display_graph(G, coords)
         cnt += 1
         cnt %= interval
-        z+=1
         N = len(G.nodes)
         mapping = {old: new for (old, new) in zip(G.nodes, [i for i in range(N)])}
         G = nx.relabel_nodes(G, mapping)
     print(len(G.nodes()), k)
+    # display_graph(G, coords)
 
-    correctness(G_init, G)
+    # correctness(G_init, G)
+    return len(G.nodes())
     
     

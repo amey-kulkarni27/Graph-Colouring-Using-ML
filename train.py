@@ -1,5 +1,5 @@
 import numpy as np
-from operations import operations, vertex_pair, vertex_pair_opt, get_action
+from operations import operations, vertex_pair, vertex_pair_opt, vertex_pair_non_edge, get_action
 from feature_vector import feature_vector
 from generate_kpart import display_graph
 import networkx as nx
@@ -18,12 +18,12 @@ def train(G, coords, X, y, n, k, interval=1):
     # display_graph(G, coords)
     cnt = 0
     z=0
-    while (vertex_pair_opt(G)) != False:
+    while (vertex_pair_non_edge(G)) != False:
         if cnt == 0:
-            vec = feature_vector(G, method='topk', k=k-1)
+            vec = feature_vector(G, method='node2vec', k=k-1)
 
         # nodes = vertex_pair(G, n * k)
-        nodes = vertex_pair_opt(G)
+        nodes = vertex_pair_non_edge(G)
         action = get_action(G, nodes)
         x = np.concatenate((vec[nodes[0]], vec[nodes[1]]))
         X.append(x)
