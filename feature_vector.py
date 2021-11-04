@@ -33,7 +33,7 @@ def topk_fv(G, k):
     A = adjacency_matrix(G).todense()
     A = np.array(A)
     A = A.astype(float)
-    _, eigvecs = eigs(A, k=k) # Top k eigenvectors
+    _, eigvecs = eigs(A, k=k, which='LM') # Top k eigenvectors
     eigvecs = np.real(eigvecs)
     fv = eigvecs
     # fv = list(map(list, zip(*eigvecs)))
@@ -69,5 +69,7 @@ def feature_vector(G, method='topk', k=3):
         fv = topk_fv(G, k=k)
     elif method == 'node2vec':
         fv = node2vec_fv(G, k)
+    else:
+        print("Invalid method")
     
     return fv
