@@ -31,7 +31,7 @@ def vertex_pair_opt(G):
 
 def vertex_pair_non_edge(G):
     '''
-    G -> Graph on which we perform the operation
+    :param G -> Graph on which we perform the operation
 
     Return: Pair of vertices that do not share an edge between them
     If G is a complete graph, return False
@@ -39,8 +39,31 @@ def vertex_pair_non_edge(G):
     non_edges = list(nx.non_edges(G))
     if(len(non_edges) == 0):
         return False
-    edges = random.sample(non_edges, 1)
-    return edges[0]
+    n_edges = random.sample(non_edges, 1)
+    return n_edges[0]
+
+def vertex_pair_coin_toss(G, op):
+    '''
+    :param G -> Graph on which we perform the operation
+    :param op -> Merge if 0, Add edge if 1
+
+    Return: Pair of vertices that do not share an edge between them
+    If G is a complete graph, return False
+    '''
+    non_edges = list(nx.non_edges(G))
+    if(len(non_edges) == 0):
+        return False
+    random.shuffle(non_edges)
+    for n_edge in non_edges:
+        u, v = n_edge
+        u_c = G.nodes[u]['colour']
+        v_c = G.nodes[v]['colour']
+        if op == 0 and u_c == v_c:
+            return n_edge
+        elif op == 1 and u_c != v_c:
+            return n_edge
+    # If no non-edge of the given type exists
+    return non_edges[0]
 
 def operations(G, action, nodes):
     '''
