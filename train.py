@@ -42,7 +42,7 @@ def train(G, coords, X, y, n, k, interval=1, method="top_k"):
         x = np.concatenate((vec[nodes[0]], vec[nodes[1]]))
         X.append(x)
         y.append(action)
-        G = operations(G, action, nodes)
+        G = operations(G, action, nodes) # p probability of correct action
         # display_graph(G, coords)
         cnt += 1
         cnt %= interval
