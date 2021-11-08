@@ -1,6 +1,6 @@
 import numpy as np
 from networkx.linalg.graphmatrix import adjacency_matrix
-from scipy.sparse.linalg import eigs
+from scipy.sparse.linalg import eigsh
 from scipy.linalg.decomp import eig
 from node2vec import Node2Vec
 
@@ -33,7 +33,7 @@ def topk_fv(G, k):
     A = adjacency_matrix(G).todense()
     A = np.array(A)
     A = A.astype(float)
-    _, eigvecs = eigs(A, k=k, which='LM') # Top k eigenvectors
+    _, eigvecs = eigsh(A, k=k, which='LM') # Top k eigenvectors
     eigvecs = np.real(eigvecs)
     fv = eigvecs
     # fv = list(map(list, zip(*eigvecs)))
@@ -46,9 +46,9 @@ def node2vec_fv(G, k=32):
 
     Return -> N feature vectors
     '''
-    node2vec = Node2Vec(G, dimensions=k, walk_length=20, num_walks=100, workers=4, quiet=True)  # Use temp_folder for big graphs
+    node2vec = Node2Vec(G, dimensions=k, walk_length=8, num_walks=20, workers=4, quiet=True)  # Use temp_folder for big graphs
     # # Embed nodes
-    model = node2vec.fit(window=10, min_count=1, batch_words=4)  # Any keywords acceptable by gensim.Word2Vec can be passed, `dimensions` and `workers` are automatically passed (from the Node2Vec constructor)
+    model = node2vec.fit(window=5, min_count=1, batch_words=4)  # Any keywords acceptable by gensim.Word2Vec can be passed, `dimensions` and `workers` are automatically passed (from the Node2Vec constructor)
     fv = model.wv[[i for i in range(len(G.nodes))]]
     return fv
 
