@@ -48,7 +48,8 @@ def test(G, coords, clf, n, k, interval=1, method="top_k"):
         t4 = timer()
         x = np.concatenate((vec[nodes[0]], vec[nodes[1]]))
         x = x.reshape(1, -1)
-        action = clf.predict(x)
+        action = clf.predict(x, threshold=1)[0]
+        # print(action)
         t5 = timer()
         G = operations(G, action, nodes)
         # display_graph(G, coords)
