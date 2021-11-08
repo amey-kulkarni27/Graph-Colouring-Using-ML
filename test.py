@@ -19,7 +19,7 @@ def correctness(G_init, G):
                     # display_graph(G)
                 assert(G_init.has_edge(lbls[i], lbls[j]) == False)
 
-def test(G, coords, clf, n, k, interval=1, method="top_k"):
+def test(G, coords, clf, n, k, interval=1, method="top_k", thresh=0.5):
     '''
     G -> Graph on which we test
     n -> Number of nodes in each of the independent sets
@@ -48,7 +48,7 @@ def test(G, coords, clf, n, k, interval=1, method="top_k"):
         t4 = timer()
         x = np.concatenate((vec[nodes[0]], vec[nodes[1]]))
         x = x.reshape(1, -1)
-        action = clf.predict(x, threshold=1)[0]
+        action = clf.predict(x, threshold=thresh)[0]
         # print(action)
         t5 = timer()
         G = operations(G, action, nodes)
