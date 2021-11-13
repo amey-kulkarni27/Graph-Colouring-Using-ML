@@ -12,8 +12,8 @@ from timeit import default_timer as timer
 
 start = timer()
 num_graphs = 5
-k = 10
-n = 10 # Number of nodes in a single partition
+k = 15
+n = 15 # Number of nodes in a single partition
 p = 0.8
 delta = 5
 G_list = [gen_kpart(k, n, p) for i in range(num_graphs)]
@@ -26,7 +26,7 @@ for G, coords in G_train_list:
     Gdash = copy.deepcopy(G)
     t2 = timer()
     print("Copy: ", round(t2 - t1, 2))
-    train(Gdash, coords, X, y, n, k//2, update_interval, "topk", coin_toss=True)
+    train(Gdash, coords, X, y, n, k//2, update_interval, "topk", coin_toss=False)
     t3 = timer()
     print("Train time: ", round(t3 - t2, 2))
     print()
@@ -45,7 +45,7 @@ for G, coords in G_test_list:
     new_nodes = []
     pwise_acc = []
     for trials in range(delta):
-        G_final = test(G, coords, lr, n, k//2, update_interval, "topk", 0.7)
+        G_final = test(G, coords, lr, n, k//2, update_interval, "topk", 0.6)
         new_num = num_nodes(G_final)
         acc = pairwise_accuracy(G_final, G, 1000)
         new_nodes.append(new_num)
