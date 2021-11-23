@@ -12,8 +12,8 @@ from timeit import default_timer as timer
 
 start = timer()
 num_graphs = 5
-k = 15
-n = 15 # Number of nodes in a single partition
+k = 16
+n = 16 # Number of nodes in a single partition
 p = 0.8
 delta = 5
 G_list = [gen_kpart(k, n, p) for i in range(num_graphs)]
