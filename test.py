@@ -64,16 +64,16 @@ def test(G, coords, clf, n, k, interval=1, method="top_k", thresh=0.5):
         nt += t4 - t3
         at += t5 - t4
         mpt += t7 - t6
-    print("Steps Taken:", steps)
-    print("Feature Vector:", round(fvt, 2))
-    print("Nodes:", round(nt, 2))
-    print("Concatenation:", round(concatt, 2))
-    print("Predict:", round(at, 2))
-    print("Remapping:", round(mpt, 2))
-    print()
+    # print("Steps Taken:", steps)
+    # print("Feature Vector:", round(fvt, 2))
+    # print("Nodes:", round(nt, 2))
+    # print("Concatenation:", round(concatt, 2))
+    # print("Predict:", round(at, 2))
+    # print("Remapping:", round(mpt, 2))
+    # print()
     # display_graph(G, coords)
 
     # correctness(G_init, G)
-    return G
+    return G, steps
     
     

@@ -36,6 +36,7 @@ def pairwise_accuracy(G, G_init, n_samples=1000):
     N = len(G_init.nodes())
     inv_mp = inverse_map(G, N)
     correct = 0
+    conf = [0, 0, 0, 0] # MM, MA, AM, AA (gt, actual)
     for _ in range(n_samples):
         u, v = random.sample(range(N), 2)
 
@@ -47,5 +48,15 @@ def pairwise_accuracy(G, G_init, n_samples=1000):
 
         if actual == gt:
             correct += 1
+        
+        if gt == 0 and actual == 0:
+            conf[0] += 1
+        elif gt == 0 and actual == 1:
+            conf[1] += 1
+        elif gt == 1 and actual == 0:
+            conf[2] += 1
+        elif gt == 1 and actual == 1:
+            conf[3] += 1
     
+    print(conf)
     return correct / n_samples

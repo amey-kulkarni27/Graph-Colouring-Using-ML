@@ -57,9 +57,9 @@ def train(G, coords, X, y, n, k, interval=1, method="top_k", coin_toss=False):
         at += t5 - t4
         concatt += t6 - t5
         mpt += t7 - t6
-    print("Steps Taken:", steps)
-    print("Feature Vector:", round(fvt, 2))
-    print("Nodes:", round(nt, 2))
-    print("Concatenation:", round(concatt, 2))
-    print("Action:", round(at, 2))
-    print("Remapping:", round(mpt, 2))
+    # print("Steps Taken:", steps)
+    # print("Feature Vector:", round(fvt, 2))
+    # print("Nodes:", round(nt, 2))
+    # print("Concatenation:", round(concatt, 2))
+    # print("Action:", round(at, 2))
+    # print("Remapping:", round(mpt, 2))
