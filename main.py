@@ -4,16 +4,15 @@ from metrics import num_nodes, pairwise_accuracy
 from train import train
 from test import test
 import numpy as np
-from sklearn.linear_model import LogisticRegression
-from classifier import Logistic
+from classifier import classifier
 import copy
 from sklearn.model_selection import train_test_split
 from timeit import default_timer as timer
 
 start = timer()
 num_graphs = 5
-k = 5
-n = 5 # Number of nodes in a single partition
+k = 10
+n = 10 # Number of nodes in a single partition
 p = 0.6
 delta = 3
 G_list = [gen_kpart(k, n, p) for i in range(num_graphs)]
@@ -34,10 +33,8 @@ for G, coords in G_train_list:
 X = np.array(X)
 y = np.array(y)
 t2 = timer()
-# lr = LogisticRegression(random_state=0)
-# clf = lr.fit(X, y)
-lr = Logistic(rand_state=0)
-lr.fit(X, y)
+clf = classifier("xgb", 0)
+clf.fit(X, y)
 t3 = timer()
 print("LR fit time: ", round(t3 - t2, 2))
 
@@ -45,7 +42,7 @@ for G, coords in G_test_list:
     new_nodes = []
     pwise_acc = []
     for trials in range(delta):
-        G_final, steps = test(G, coords, lr, n, k//2, update_interval, "topk", 0.5)
+        G_final, steps = test(G, coords, clf, n, k//2, update_interval, "topk", 0.7)
         new_num = num_nodes(G_final)
         acc = pairwise_accuracy(G_final, G, 1000)
         new_nodes.append(new_num)
