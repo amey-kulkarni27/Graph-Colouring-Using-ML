@@ -12,10 +12,10 @@ from timeit import default_timer as timer
 
 start = timer()
 num_graphs = 5
-k = 10
-n = 10 # Number of nodes in a single partition
+k = 5
+n = 5 # Number of nodes in a single partition
 p = 0.6
-delta = 1
+delta = 3
 G_list = [gen_kpart(k, n, p) for i in range(num_graphs)]
 G_train_list, G_test_list = train_test_split(G_list, test_size=0.2)
 X = []

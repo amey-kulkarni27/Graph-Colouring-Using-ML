@@ -58,5 +58,5 @@ def pairwise_accuracy(G, G_init, n_samples=1000):
         elif gt == 1 and actual == 1:
             conf[3] += 1
     
-    print(conf)
+    # print(conf)
     return correct / n_samples
