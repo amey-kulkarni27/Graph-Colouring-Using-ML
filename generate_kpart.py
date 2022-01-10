@@ -102,7 +102,7 @@ def fixed_kpart(k, n, p):
     '''
 
     N = k * n
-    total_edges = p*(combinations(N, 2) - k*combinations(n, 2))
+    total_edges = p*(combinations(N, 2) - k*combinations(n, 2))//2
 
     G = nx.Graph()
     G.add_nodes_from([i for i in range(N)])
@@ -112,14 +112,15 @@ def fixed_kpart(k, n, p):
     node_dict = {}
 
     # choose a cluster, choose a node and make edges to all other cluster
+    print("Total edges: ", total_edges)
     for i in range(k):
-        for j in range(i*k, i*k+n):
+        for j in range(i*n, i*n+n):
             count = 0
             for l in range(k):
                 if l == i or l in node_dict.get(j, []):
                     continue
                 u = j
-                v = np.random.randint(k) + l*k
+                v = np.random.randint(n) + l*n
                 G.add_edge(u, v)
                 node_dict[u] = node_dict.get(u, []) + [l]
                 node_dict[v] = node_dict.get(v, []) + [i]
@@ -132,19 +133,22 @@ def fixed_kpart(k, n, p):
     fill_more_edges = True
 
     if fill_more_edges:
-        while total_edges:
+        print(f"Adding {min(total_edges,0)} remaining edges")
+        while total_edges>0:
             u = np.random.randint(N)
-            choices_avalable = list(range(u//k*n)) + list(range((u//k+1)*n, N))
+            choices_avalable = list(range(u//n*n)) + list(range((u//n+1)*n, N))
             v = np.random.choice(choices_avalable)
             if v in G.neighbors(u):
                 continue
             G.add_edge(u, v)
-            # print(u,v)
+            # print(u,v, total_edges)
+            total_edges -= 1
 
+    print("Setting node coordinates")
     coords_dict = set_coords(k, n)
     return G, coords_dict
 
 
 if __name__ == '__main__':
-    G, coords = fixed_kpart(10, 10, 0.7)
+    G, coords = fixed_kpart(5, 5, 0.4)
     display_graph(G, coords)
