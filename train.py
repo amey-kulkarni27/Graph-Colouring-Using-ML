@@ -7,7 +7,7 @@ from generate_kpart import display_graph
 import networkx as nx
 from timeit import default_timer as timer
 
-def train(G, coords, X, y, n, k, interval=1, method="top_k", coin_toss=False):
+def train(G, coords, X, y, n, k, interval=1, method="top_k", coin_toss=False, sub=True):
     '''
     G -> Graph on which we train
     X -> Feature vectors to be appended
@@ -40,7 +40,10 @@ def train(G, coords, X, y, n, k, interval=1, method="top_k", coin_toss=False):
         t4 = timer()
         action = get_action(G, nodes)
         t5 = timer()
-        x = np.concatenate((vec[nodes[0]], vec[nodes[1]]))
+        if(sub):
+                x = abs(vec[nodes[1]] - vec[nodes[0]])
+        else:
+            x = np.concatenate((vec[nodes[0]], vec[nodes[1]]))
         X.append(x)
         y.append(action)
         G = operations(G, action, nodes) # p probability of correct action
@@ -63,3 +66,50 @@ def train(G, coords, X, y, n, k, interval=1, method="top_k", coin_toss=False):
     # print("Concatenation:", round(concatt, 2))
     # print("Action:", round(at, 2))
     # print("Remapping:", round(mpt, 2))
+
+def train_static(G, coords, X, y, n, k, method="top_k", equal_cl=True, sub=True):
+    N = len(G.nodes)
+    vec = feature_vector(G, method=method, k=k)
+    if equal_cl:
+        cl_size = ((n * (n - 1)) // 2) * k
+        s1 = 0
+        for col in range(k):
+            start = col * n
+            for i in range(start, start + n):
+                for j in range(i + 1, start + n):
+                    nodes = (i, j)
+                    s1 += 1
+                    action = get_action(G, nodes)
+                    assert(action == 0)
+                    if(sub):
+                        x = abs(vec[nodes[1]] - vec[nodes[0]])
+                    else:
+                        x = np.concatenate((vec[nodes[0]], vec[nodes[1]]))
+                    X.append(x)
+                    y.append(action)
+        assert(s1 == cl_size)
+        # cl_size *= 2
+        while(cl_size > 0):
+            op = 1
+            nodes = vertex_pair_coin_toss(G, op)
+            action = get_action(G, nodes)
+            assert(action == 1)
+            if(sub):
+                x = abs(vec[nodes[1]] - vec[nodes[0]])
+            else:
+                x = np.concatenate((vec[nodes[0]], vec[nodes[1]]))
+            X.append(x)
+            y.append(action)
+            cl_size -= 1
+    else:
+        for i in range(N):
+            for j in range(i + 1, N):
+                nodes = (i, j)
+            action = get_action(G, nodes)
+            if(sub):
+                x = abs(vec[nodes[1]] - vec[nodes[0]])
+            else:
+                x = np.concatenate((vec[nodes[0]], vec[nodes[1]]))
+            X.append(x)
+            y.append(action)
+       

@@ -1,11 +1,12 @@
 from operator import concat
 import numpy as np
 from scipy.sparse import coo
-from operations import operations, vertex_pair_opt, vertex_pair_non_edge
+from operations import get_action, operations, vertex_pair_opt, vertex_pair_non_edge
 from feature_vector import feature_vector
 from generate_kpart import display_graph
 import networkx as nx
 import copy
+from sklearn.metrics import roc_curve, auc
 from timeit import default_timer as timer
 
 def correctness(G_init, G):
@@ -19,7 +20,7 @@ def correctness(G_init, G):
                     # display_graph(G)
                 assert(G_init.has_edge(lbls[i], lbls[j]) == False)
 
-def test(G, coords, clf, n, k, interval=1, method="top_k", thresh=0.5):
+def test(G, coords, clf, n, k, interval=1, method="top_k", thresh=0.5, sub=True):
     '''
     G -> Graph on which we test
     n -> Number of nodes in each of the independent sets
@@ -46,7 +47,10 @@ def test(G, coords, clf, n, k, interval=1, method="top_k", thresh=0.5):
         t3 = timer()
         nodes = vertex_pair_non_edge(G)
         t4 = timer()
-        x = np.concatenate((vec[nodes[0]], vec[nodes[1]]))
+        if(sub):
+                x = abs(vec[nodes[1]] - vec[nodes[0]])
+        else:
+            x = np.concatenate((vec[nodes[0]], vec[nodes[1]]))
         x = x.reshape(1, -1)
         action = clf.predict(x, threshold=thresh)[0]
         # print(action)
@@ -76,4 +80,33 @@ def test(G, coords, clf, n, k, interval=1, method="top_k", thresh=0.5):
     # correctness(G_init, G)
     return G, steps
     
+def test_static(G, coords, clf, k, method="top_k", thresh=0.5, sub=True, probvals=False):
+    corr = 0
+    tot = 0
+    N = len(G.nodes)
+    vec = feature_vector(G, method=method, k=k)
+    y_scores = []
+    y_true = []
+    for i in range(N):
+        for j in range(i + 1, N):
+            nodes = (i, j)
+            if(sub):
+                x = abs(vec[nodes[1]] - vec[nodes[0]])
+            else:
+                x = np.concatenate((vec[nodes[0]], vec[nodes[1]]))
+            x = x.reshape(1, -1)
+            action = clf.predict(x, threshold=thresh)[0]
+            if probvals:
+                y_scores.append(clf.predict(x, threshold=thresh, probvals=True))
+            y_true.append(get_action(G, nodes))
+            if(action == get_action(G, nodes)):
+                corr += 1
+            tot += 1
+    fpr, tpr, thresholds = (roc_curve(y_true=y_true, y_score=y_scores))
+    # print(y_scores)
+    print(auc(fpr, tpr))
+    # print(corr, tot)
+    # print(corr / tot)
+
+       
     
