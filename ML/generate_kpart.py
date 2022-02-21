@@ -17,8 +17,10 @@ def set_coords(k, n):
     return coords
 
 def display_graph(G, coords=None):
+    fig = plt.figure()
     nx.draw(G, with_labels=True, font_weight='bold', pos=coords)
-    plt.show()
+    fig.savefig("9.png")
+    # plt.show()
 
 def set_colour(G, n, k):
     '''
@@ -69,3 +71,6 @@ def gen_kpart(k, n, p):
     # Set node coordinates
     coords_dict = set_coords(k, n)
     return G, coords_dict
+
+G, coords = gen_kpart(3, 3, 0.9)
+display_graph(G, coords)
