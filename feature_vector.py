@@ -3,6 +3,9 @@ from networkx.linalg.graphmatrix import adjacency_matrix
 from scipy.sparse.linalg import eigsh
 from scipy.linalg.decomp import eig
 from node2vec import Node2Vec
+from scipy import linalg
+import networkx as nx
+
 
 def manual_fv(G):
     '''
@@ -38,7 +41,23 @@ def topk_fv(G, k):
     fv = eigvecs
     # fv = list(map(list, zip(*eigvecs)))
     # print(fv.shape)
-    return fv
+    return np.matmul(A, fv)
+
+def topk_sv(G, k):
+    '''
+    G -> Input Graph
+    k -> Top number of singular values to be chosen
+
+    Return -> N x k matrix, every node has a feature vector of dimension k
+    '''
+    A = nx.adjacency_matrix(G)
+    A = A.toarray()
+    u, s, _ = linalg.svd(A)
+    uk = u[:, 0:k]
+    sk = s[0:k]**0.5
+    Xk = uk * sk
+    # print(Xk.shape)
+    return Xk
 
 def node2vec_fv(G, k=32):
     '''
@@ -67,6 +86,8 @@ def feature_vector(G, method='topk', k=3):
         fv = manual_fv(G)
     elif method == 'topk':
         fv = topk_fv(G, k=k)
+    elif method == 'topksv':
+        fv = topk_sv(G, k=k)
     elif method == 'node2vec':
         fv = node2vec_fv(G, k)
     else:

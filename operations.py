@@ -13,7 +13,7 @@ def vertex_pair(G, N):
         u, v = random.sample(range(N), 2)
         if ~G.has_edge(u, v):
             break
-    return (u, v)
+    return (min(u, v), max(u, v))
 
 def vertex_pair_opt(G):
     '''
@@ -27,7 +27,8 @@ def vertex_pair_opt(G):
         # print("Exception: Complete graph given")
         return False
     edges = random.sample(Gdash.edges(), 1)
-    return edges[0]
+    n_edge = (min(edges[0]), max(edges[0]))
+    return n_edge
 
 def vertex_pair_non_edge(G):
     '''
@@ -40,7 +41,8 @@ def vertex_pair_non_edge(G):
     if(len(non_edges) == 0):
         return False
     n_edges = random.sample(non_edges, 1)
-    return n_edges[0]
+    n_edge = (min(n_edges[0]), max(n_edges[0]))
+    return n_edge
 
 def vertex_pair_coin_toss(G, op):
     '''
