@@ -3,15 +3,15 @@ from operations import get_action, operations, vertex_pair_opt, vertex_pair_non_
 import random
 import copy
 
-import matplotlib
-matplotlib.use('Agg')
+# import matplotlib
+# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
 num_graphs = 5
-k = 10
-n = 10 # Number of nodes in a single partition
-p = 0.95
+k = 2
+n = 3 # Number of nodes in a single partition
+p = 0.0
 error = 0.05
 errors = [0.1 * i for i in range(11)]
 probs = [0.1 * i for i in range(11)]
@@ -20,7 +20,7 @@ change_err = True # either vary error or vary graph density
 y = [] # no of colours
 if change_err:
     x = errors
-    G, _ = gen_kpart(k, n, p)
+    G, coords = gen_kpart(k, n, p)
 else:
     x = probs
 
@@ -28,6 +28,8 @@ for i in range(len(x)):
     if change_err:
         error = x[i]
         Gdash = copy.deepcopy(G)
+        if i == 10:
+            display_graph(Gdash, coords)
     else:
         p = x[i]
         Gdash, _ = gen_kpart(k, n, p)
@@ -38,6 +40,8 @@ for i in range(len(x)):
         if r < error:
             action ^= 1
         Gdash = operations(Gdash, action, nodes)
+        if i == 10:
+            display_graph(Gdash, coords)
     cols = len(Gdash.nodes)
     y.append(cols)
 print(y)

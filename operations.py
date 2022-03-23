@@ -129,3 +129,13 @@ def get_action(G, nodes):
         return 0
     else:
         return 1
+
+
+'''
+a1 a2 a3
+1 2 3
+1 2 3
+1 2 3
+1 2 3
+1 2 3
+'''
