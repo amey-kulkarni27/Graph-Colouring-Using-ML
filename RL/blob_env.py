@@ -1,4 +1,3 @@
-from http.client import MOVED_PERMANENTLY
 import numpy as np
 import matplotlib
 from PIL import Image
