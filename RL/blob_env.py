@@ -1,14 +1,13 @@
 from http.client import MOVED_PERMANENTLY
 import numpy as np
+import matplotlib
 from PIL import Image
 import cv2
 import pickle
-import matplotlib
-matplotlib.use('TkCairo')
-import matplotlib.pyplot as plt
-from matplotlib import style
 import time
 import warnings
+from matplotlib import style
+
 
 style.use('ggplot')
 
@@ -79,6 +78,7 @@ class Blob:
             self.y = 0
         elif self.y > SIZE - 1:
             self.y = SIZE - 1
+import matplotlib.pyplot as plt
 
 # if we don't have a q_table to load from, we create one
 if start_q_table is None:
@@ -168,7 +168,7 @@ moving_avg = np.convolve(episode_rewards, np.ones((SHOW_EVERY, )) / SHOW_EVERY, 
 plt.plot([i for i in range(len(moving_avg))], moving_avg)
 plt.ylabel(f"reward {SHOW_EVERY}")
 plt.xlabel("episode #")
-plt.show()
+# plt.show()
 plt.savefig('graph.png')
 
 with open(f"qtable-{int(time.time())}.pickle", "wb") as f:
