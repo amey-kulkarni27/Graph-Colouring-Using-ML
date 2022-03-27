@@ -2,15 +2,18 @@ from http.client import MOVED_PERMANENTLY
 import numpy as np
 from PIL import Image
 import cv2
-import matplotlib.pyplot as plt
 import pickle
+import matplotlib
+matplotlib.use('TkCairo')
+import matplotlib.pyplot as plt
 from matplotlib import style
 import time
+import warnings
 
 style.use('ggplot')
 
 SIZE = 10
-HM_EPISODES = 25_000
+HM_EPISODES = 5_000
 MOVE_PENALTY = 1
 ENEMY_PENALTY = 300
 FOOD_REWARD = 25
@@ -97,7 +100,7 @@ for episode in range(HM_EPISODES):
     enemy = Blob()
     if episode % SHOW_EVERY == 0:
         print(f"on #{episode}, epsilon is {epsilon}")
-        print(f"{SHOW_EVERY} ep mean: {np.mean(episode_rewards[-SHOW_EVERY:])}")
+        # print(f"{SHOW_EVERY} ep mean: {np.mean(episode_rewards[-SHOW_EVERY:])}")
         show = True
     else:
         show = False
@@ -128,7 +131,45 @@ for episode in range(HM_EPISODES):
 
         if reward == FOOD_REWARD:
             new_q = FOOD_REWARD
+        elif reward == -ENEMY_PENALTY:
+            new_q = -ENEMY_PENALTY
         else:
             new_q = (1 - LEARNING_RATE) * current_q + LEARNING_RATE * (reward + DISCOUNT * max_future_q)
+        
         q_table[obs][action] = new_q
         
+        if show:
+            env = np.zeros((SIZE, SIZE, 3), dtype=np.uint8)
+            env[food.y][food.x] = d[FOOD_N] 
+            env[player.y][player.x] = d[PLAYER_N] 
+            env[enemy.y][enemy.x] = d[ENEMY_N]
+
+            # img = Image.fromarray(env, "RGB")
+            # img = img.resize((300, 300))
+            # cv2.imshow("", np.array(img))
+
+            if reward == FOOD_REWARD or reward == -ENEMY_PENALTY:
+                if cv2.waitKey(500) & 0xFF == ord('q'):
+                    break
+            else:
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+            
+        episode_reward += reward
+        if reward == FOOD_REWARD or reward == -ENEMY_PENALTY:
+            break
+
+    episode_rewards.append(episode_reward)
+    epsilon *= EPS_DECAY
+
+moving_avg = np.convolve(episode_rewards, np.ones((SHOW_EVERY, )) / SHOW_EVERY, mode="valid")
+
+
+plt.plot([i for i in range(len(moving_avg))], moving_avg)
+plt.ylabel(f"reward {SHOW_EVERY}")
+plt.xlabel("episode #")
+plt.show()
+plt.savefig('graph.png')
+
+with open(f"qtable-{int(time.time())}.pickle", "wb") as f:
+    pickle.dump(q_table, f)
