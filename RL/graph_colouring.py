@@ -29,7 +29,7 @@ BUCKETS = 50
 NUM_ACTIONS = 2
 UPDATE_INTERVAL = 1 # update the feature vector after every _ turns
 
-HM_EPISODES = 500
+HM_EPISODES = 20_000
 REWARD = 20
 PENALTY = 10
 TURN = 1
@@ -116,12 +116,14 @@ for episode in range(HM_EPISODES):
 
         new_q = (1 - LEARNING_RATE) * current_q + LEARNING_RATE * (reward + DISCOUNT * max_future_q)
         q_table[pos][action] = new_q
+        episode_reward += reward
 
     if len(G_obj.G.nodes()) == K:
         reward = REWARD
     else:
         reward = -PENALTY
     q_table[pos][action] = reward
+    episode_reward += reward
     episode_rewards.append(episode_reward)
     epsilon *= EPS_DECAY
 

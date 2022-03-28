@@ -84,10 +84,6 @@ def gen_kpart(k, n, p):
     coords_dict = set_coords(k, n)
     return G, coords_dict
 
-<<<<<<< HEAD:ML/generate_kpart.py
-G, coords = gen_kpart(3, 3, 0.9)
-display_graph(G, coords)
-=======
 
 def combinations(n, r):
     return len(list(itertools.combinations(range(n), r)))
@@ -158,4 +154,3 @@ def fixed_kpart(k, n, p):
 if __name__ == '__main__':
     G, coords = fixed_kpart(5, 5, 0.4)
     display_graph(G, coords)
->>>>>>> eff82a8915a4897c3e7f8c34132be6fc93db93eb:generate_kpart.py
