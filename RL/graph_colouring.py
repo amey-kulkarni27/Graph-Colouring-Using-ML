@@ -20,16 +20,16 @@ from operations import operations, vertex_pair_non_edge, get_action
 style.use('ggplot')
 
 K = 3 # colours
-N = 3 # vertices of each colour
-DENSITY = 0.7
+N = 30 # vertices of each colour
+DENSITY = 0.3
 FV_LEN = 3 # length of feature vector
 METHOD = 'topk'
 MAX_DIST = 2
 BUCKETS = 50
-NUM_ACTIONS = 2
+NUM_ACTIONS = 3 # 3rd action is don't do anything
 UPDATE_INTERVAL = 1 # update the feature vector after every _ turns
 
-HM_EPISODES = 20_000
+HM_EPISODES = 25_000
 REWARD = 20
 PENALTY = 10
 TURN = 1
@@ -91,14 +91,15 @@ for episode in range(HM_EPISODES):
             # GET THE ACTION
             action = np.argmax(q_table[pos])
         else:
-            action = np.random.randint(0, 2)
-        G_obj.G = operations(G_obj.G, action, nodes)
-        N = len(G_obj.G.nodes)
-        mapping = {old: new for (old, new) in zip(G_obj.G.nodes, [i for i in range(N)])}
-        G_obj.G = nx.relabel_nodes(G_obj.G, mapping)
-        # print(len(G_obj.G.nodes), action)
-        cnt += 1
-        cnt %= UPDATE_INTERVAL
+            action = np.random.randint(0, NUM_ACTIONS)
+        if action < 2:
+            G_obj.G = operations(G_obj.G, action, nodes)
+            N = len(G_obj.G.nodes)
+            mapping = {old: new for (old, new) in zip(G_obj.G.nodes, [i for i in range(N)])}
+            G_obj.G = nx.relabel_nodes(G_obj.G, mapping)
+            # print(len(G_obj.G.nodes), action)
+            cnt += 1
+            cnt %= UPDATE_INTERVAL
 
         if (vertex_pair_non_edge(G_obj.G)) == False:
             break
@@ -118,8 +119,13 @@ for episode in range(HM_EPISODES):
         q_table[pos][action] = new_q
         episode_reward += reward
 
-    if len(G_obj.G.nodes()) == K:
+    cols = len(G_obj.G.nodes())
+    if cols == K:
         reward = REWARD
+    elif cols == K + 1:
+        reward = REWARD // 2
+    elif cols == K + 2:
+        reward = REWARD // 4
     else:
         reward = -PENALTY
     q_table[pos][action] = reward
@@ -134,7 +140,7 @@ plt.plot([i for i in range(len(moving_avg))], moving_avg)
 plt.ylabel(f"reward {SHOW_EVERY}")
 plt.xlabel("episode #")
 # plt.show()
-plt.savefig('graph.png')
+plt.savefig('varypen.png')
 
 with open(f"qtable-{int(time.time())}.pickle", "wb") as f:
     pickle.dump(q_table, f)
@@ -143,3 +149,9 @@ with open(f"qtable-{int(time.time())}.pickle", "wb") as f:
 # G_obj = Graph()
 # G_obj.update_fv()
 # print(G_obj.fv)
+
+
+# 1) Give smaller reward for reaching close to optimal (increase penalty with mistakes)
+# 2) Do not perform any action. Done
+# 3) Calculate distance between 5 pairs while calculating next_nodes, keep the one with the smallest d for max_future_q
+# 4) (Euclidean Norm, Similarity (dot product), )

@@ -11,7 +11,7 @@ from matplotlib import style
 style.use('ggplot')
 
 SIZE = 10
-HM_EPISODES = 5_000
+HM_EPISODES = 25_000
 MOVE_PENALTY = 1
 ENEMY_PENALTY = 300
 FOOD_REWARD = 25
