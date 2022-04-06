@@ -123,8 +123,6 @@ for episode in range(HM_EPISODES):
     if cols == K:
         reward = REWARD
     elif cols == K + 1:
-        reward = REWARD // 2
-    elif cols == K + 2:
         reward = REWARD // 4
     else:
         reward = -PENALTY
@@ -140,7 +138,7 @@ plt.plot([i for i in range(len(moving_avg))], moving_avg)
 plt.ylabel(f"reward {SHOW_EVERY}")
 plt.xlabel("episode #")
 # plt.show()
-plt.savefig('varypen.png')
+plt.savefig('varypen2.png')
 
 with open(f"qtable-{int(time.time())}.pickle", "wb") as f:
     pickle.dump(q_table, f)
