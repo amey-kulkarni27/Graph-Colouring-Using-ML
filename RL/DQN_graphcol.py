@@ -66,7 +66,7 @@ class GraphEnv:
     REWARD = 100
     PENALTY = -200
     TURN = 1
-    OBSERVATION_SPACE_VALUES = (FV_LEN)  # 4
+    OBSERVATION_SPACE_VALUES = (FV_LEN, )  # 4
     ACTION_SPACE_SIZE = NUM_ACTIONS
 
     def reset(self):
