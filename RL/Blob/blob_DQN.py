@@ -1,7 +1,7 @@
 import numpy as np
 import keras.backend as backend
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Conv2D, MaxPooling2D, Activation, Flatten
+from keras.layers import Dense, Dropout, Conv2D, MaxPooling2D, Activation, Flatten, Input
 from tensorflow.keras.optimizers import Adam
 from keras.callbacks import TensorBoard
 import tensorflow as tf
@@ -104,11 +104,11 @@ class Blob:
 
 class BlobEnv:
     SIZE = 10
-    RETURN_IMAGES = True
+    RETURN_IMAGES = False
     MOVE_PENALTY = 1
     ENEMY_PENALTY = 300
     FOOD_REWARD = 25
-    OBSERVATION_SPACE_VALUES = (SIZE, SIZE, 3)  # 4
+    OBSERVATION_SPACE_VALUES = 4 # (SIZE, SIZE, 3)
     ACTION_SPACE_SIZE = 9
     PLAYER_N = 1  # player key in dict
     FOOD_N = 2  # food key in dict
@@ -159,7 +159,7 @@ class BlobEnv:
         done = False
         if reward == self.FOOD_REWARD or reward == -self.ENEMY_PENALTY or self.episode_step >= 200:
             done = True
-
+        
         return new_observation, reward, done
 
     def render(self):
@@ -256,6 +256,16 @@ class DQNAgent:
     def create_model(self):
         model = Sequential()
 
+        '''
+        Architecture for image as input
+        '''
+        # Hidden layer 1
+        model.add(Dense(64, input_dim = env.OBSERVATION_SPACE_VALUES , activation = 'relu'))
+        # Hidden layer 2
+        model.add(Dense(64, activation = 'relu'))
+
+        '''
+        Architecture for image as input 
         model.add(Conv2D(256, (3, 3), input_shape=env.OBSERVATION_SPACE_VALUES))  # OBSERVATION_SPACE_VALUES = (10, 10, 3) a 10x10 RGB image.
         model.add(Activation('relu'))
         model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -268,6 +278,7 @@ class DQNAgent:
 
         model.add(Flatten())  # this converts our 3D feature maps to 1D feature vectors
         model.add(Dense(64))
+        '''
 
         model.add(Dense(env.ACTION_SPACE_SIZE, activation='linear'))  # ACTION_SPACE_SIZE = how many choices (9)
         model.compile(loss="mse", optimizer=Adam(lr=0.001), metrics=['accuracy'])
@@ -333,7 +344,13 @@ class DQNAgent:
 
     # Queries main network for Q values given current observation space (environment state)
     def get_qs(self, state):
-        return self.model.predict(np.array(state).reshape(-1, *state.shape)/255)[0]
+        # !!!!!!!!!!!!!!!
+        # !!!!!!!!!!!!!!!
+        # The error is here!
+        # !!!!!!!!!!!!!!!
+        # !!!!!!!!!!!!!!!
+        return self.model.predict(state)
+        # return self.model.predict(np.array(state).reshape(-1, *state.shape)/255)[0]
 
 
 agent = DQNAgent()

@@ -338,3 +338,8 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
         epsilon *= EPSILON_DECAY
         epsilon = max(MIN_EPSILON, epsilon)
 
+
+# 1) Let the observation space be a representation (something like Graph2vec) of the graph
+# 2) Feature Vector for the graph (i) Graph2Vec, (ii) Hand-crafted feature vector
+# 3) Graph2Vec -> (i) can't be permutationally invariant. (ii) action space keeps changing
+# 4) Sequence model / Pointer Networks
