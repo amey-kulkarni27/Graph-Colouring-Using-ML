@@ -26,7 +26,7 @@ REPLAY_MEMORY_SIZE = 50_000  # How many last steps to keep for model training (b
 MIN_REPLAY_MEMORY_SIZE = 1_000  # Minimum number of steps in a memory to start training
 MINIBATCH_SIZE = 64  # How many steps (samples) to use for training
 UPDATE_TARGET_EVERY = 5  # Terminal states (end of episodes)
-MODEL_NAME = 'GC2x256'
+MODEL_NAME = 'GC64x64'
 MIN_REWARD = -200  # For model save
 MEMORY_FRACTION = 0.20
 
@@ -66,7 +66,7 @@ class GraphEnv:
     REWARD = 100
     PENALTY = -200
     TURN = 1
-    OBSERVATION_SPACE_VALUES = (FV_LEN, )  # 4
+    OBSERVATION_SPACE_VALUES = FV_LEN  # 4
     ACTION_SPACE_SIZE = NUM_ACTIONS
 
     def reset(self):
@@ -76,28 +76,30 @@ class GraphEnv:
         self.cnt = 0
         self.G_obj.update_fv(self.METHOD, self.FV_LEN) # create fv
         nodes = vertex_pair_non_edge(self.G_obj.G)
-        observation = abs(self.fv[nodes[1]] - self.fv[nodes[0]]).reshape(1, -1)
+        observation = abs(self.G_obj.fv[nodes[1]] - self.G_obj.fv[nodes[0]]).reshape(1, -1)
+        observation = tuple(observation.reshape(-1))
         return observation
 
     def step(self, action):
         self.episode_step += 1
         if action < 2:
-            self.G_obj.G = operations(self.G_obj.G, action, self.nodes)
+            node_pair = vertex_pair_non_edge(self.G_obj.G)
+            self.G_obj.G = operations(self.G_obj.G, action, node_pair)
             N = len(self.G_obj.G.nodes)
             mapping = {old: new for (old, new) in zip(self.G_obj.G.nodes, [i for i in range(N)])}
             self.G_obj.G = nx.relabel_nodes(self.G_obj.G, mapping)
             # print(len(self.G_obj.G.nodes), action)
-            cnt += 1
-            cnt %= self.UPDATE_INTERVAL
-            if cnt == 0:
-                self.G_obj.update_fv()
+            self.cnt += 1
+            self.cnt %= self.UPDATE_INTERVAL
+            if self.cnt == 0:
+                self.G_obj.update_fv(self.METHOD, self.FV_LEN)
 
         if (vertex_pair_non_edge(self.G_obj.G)) == False:
             edges = random.sample(self.G_obj.G.edges(), 1)
             nxt_nodes = (min(edges[0]), max(edges[0]))
         else:
             nxt_nodes = vertex_pair_non_edge(self.G_obj.G)
-        new_observation = abs(self.fv[nxt_nodes[1]] - self.fv[nxt_nodes[0]]).reshape(1, -1)
+        new_observation = abs(self.G_obj.fv[nxt_nodes[1]] - self.G_obj.fv[nxt_nodes[0]]).reshape(1, -1)
 
 
         if (vertex_pair_non_edge(self.G_obj.G)) == False:
@@ -115,6 +117,7 @@ class GraphEnv:
         if (vertex_pair_non_edge(self.G_obj.G)) == False or self.episode_step >= 200:
             done = True
 
+        new_observation = tuple(new_observation.reshape(-1))
         return new_observation, reward, done
 
     def render(self):
@@ -198,23 +201,15 @@ class DQNAgent:
 
     def create_model(self):
         model = Sequential()
+        # Hidden layer 1
+        model.add(Dense(64, input_dim = env.OBSERVATION_SPACE_VALUES , activation = 'relu'))
+        # Hidden layer 2
+        model.add(Dense(64, activation = 'relu'))
 
-        model.add(Conv2D(256, (3, 3), input_shape=env.OBSERVATION_SPACE_VALUES))  # OBSERVATION_SPACE_VALUES = (FV_LEN)
-        model.add(Activation('relu'))
-        model.add(MaxPooling2D(pool_size=(2, 2)))
-        model.add(Dropout(0.2))
-
-        model.add(Conv2D(256, (3, 3)))
-        model.add(Activation('relu'))
-        model.add(MaxPooling2D(pool_size=(2, 2)))
-        model.add(Dropout(0.2))
-
-        model.add(Flatten())  # this converts our 3D feature maps to 1D feature vectors
-        model.add(Dense(64))
-
-        model.add(Dense(env.ACTION_SPACE_SIZE, activation='linear'))  # ACTION_SPACE_SIZE = how many choices (9)
+        model.add(Dense(env.ACTION_SPACE_SIZE, activation='linear'))  # ACTION_SPACE_SIZE = how many choices (3)
         model.compile(loss="mse", optimizer=Adam(lr=0.001), metrics=['accuracy'])
         return model
+
 
     # Adds step's data to a memory replay array
     # (observation space, action, reward, new observation space, done)
@@ -232,12 +227,12 @@ class DQNAgent:
         minibatch = random.sample(self.replay_memory, MINIBATCH_SIZE)
 
         # Get current states from minibatch, then query NN model for Q values
-        current_states = np.array([transition[0] for transition in minibatch])/255
+        current_states = np.array([transition[0] for transition in minibatch])
         current_qs_list = self.model.predict(current_states)
 
         # Get future states from minibatch, then query NN model for Q values
         # When using target network, query it, otherwise main network should be queried
-        new_current_states = np.array([transition[3] for transition in minibatch])/255
+        new_current_states = np.array([transition[3] for transition in minibatch])
         future_qs_list = self.target_model.predict(new_current_states)
 
         X = []
@@ -263,7 +258,7 @@ class DQNAgent:
             y.append(current_qs)
 
         # Fit on all samples as one batch, log only on terminal state
-        self.model.fit(np.array(X)/255, np.array(y), batch_size=MINIBATCH_SIZE, verbose=0, shuffle=False, callbacks=[self.tensorboard] if terminal_state else None)
+        self.model.fit(np.array(X), np.array(y), batch_size=MINIBATCH_SIZE, verbose=0, shuffle=False, callbacks=[self.tensorboard] if terminal_state else None)
 
         # Update target network counter every episode
         if terminal_state:
@@ -276,7 +271,8 @@ class DQNAgent:
 
     # Queries main network for Q values given current observation space (environment state)
     def get_qs(self, state):
-        return self.model.predict(np.array(state).reshape(-1, *state.shape)/255)[0]
+        state = (np.asarray(state)).reshape(-1, env.OBSERVATION_SPACE_VALUES)
+        return self.model.predict(state)
 
 
 agent = DQNAgent()
