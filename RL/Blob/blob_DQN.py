@@ -19,7 +19,7 @@ REPLAY_MEMORY_SIZE = 50_000  # How many last steps to keep for model training (b
 MIN_REPLAY_MEMORY_SIZE = 1_000  # Minimum number of steps in a memory to start training
 MINIBATCH_SIZE = 64  # How many steps (samples) to use for training
 UPDATE_TARGET_EVERY = 5  # Terminal states (end of episodes)
-MODEL_NAME = '2x256'
+MODEL_NAME = '2H64x64'
 MIN_REWARD = -200  # For model save
 MEMORY_FRACTION = 0.20
 
@@ -300,12 +300,12 @@ class DQNAgent:
         minibatch = random.sample(self.replay_memory, MINIBATCH_SIZE)
 
         # Get current states from minibatch, then query NN model for Q values
-        current_states = np.array([transition[0] for transition in minibatch])/255
+        current_states = np.array([transition[0] for transition in minibatch])
         current_qs_list = self.model.predict(current_states)
 
         # Get future states from minibatch, then query NN model for Q values
         # When using target network, query it, otherwise main network should be queried
-        new_current_states = np.array([transition[3] for transition in minibatch])/255
+        new_current_states = np.array([transition[3] for transition in minibatch])
         future_qs_list = self.target_model.predict(new_current_states)
 
         X = []
@@ -344,11 +344,7 @@ class DQNAgent:
 
     # Queries main network for Q values given current observation space (environment state)
     def get_qs(self, state):
-        # !!!!!!!!!!!!!!!
-        # !!!!!!!!!!!!!!!
-        # The error is here!
-        # !!!!!!!!!!!!!!!
-        # !!!!!!!!!!!!!!!
+        state = (np.asarray(state)).reshape(-1, env.OBSERVATION_SPACE_VALUES)
         return self.model.predict(state)
         # return self.model.predict(np.array(state).reshape(-1, *state.shape)/255)[0]
 
