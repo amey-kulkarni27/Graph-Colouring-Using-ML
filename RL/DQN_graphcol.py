@@ -26,12 +26,12 @@ REPLAY_MEMORY_SIZE = 50_000  # How many last steps to keep for model training (b
 MIN_REPLAY_MEMORY_SIZE = 1_000  # Minimum number of steps in a memory to start training
 MINIBATCH_SIZE = 64  # How many steps (samples) to use for training
 UPDATE_TARGET_EVERY = 5  # Terminal states (end of episodes)
-MODEL_NAME = 'GC64x64'
-MIN_REWARD = -200  # For model save
+MODEL_NAME = 'GC64x64N=5K=5_bestp'
+MIN_REWARD = -50  # For model save
 MEMORY_FRACTION = 0.20
 
 # Environment settings
-EPISODES = 2_000
+EPISODES = 5_000
 
 # Exploration settings
 epsilon = 1  # not a constant, going to be decayed
@@ -53,21 +53,37 @@ class Graph:
         return np.linalg.norm(self.fv[u] - self.fv[v])
 
 class GraphEnv:
-    K = 3 # colours
-    N = 30 # vertices of each colour
+    K = 5 # colours
+    N = 5 # vertices of each colour
     DENSITY = 0.3
-    FV_LEN = 3 # length of feature vector
+    FV_LEN = N // 2 # length of feature vector
     METHOD = 'topk'
     MAX_DIST = 2
     BUCKETS = 50
     NUM_ACTIONS = 3 # 3rd action is don't do anything
     UPDATE_INTERVAL = 1 # update the feature vector after every _ turns
+    p = 5 # We select the best pair out of the top p
 
-    REWARD = 100
-    PENALTY = -200
+    REWARD = 20
+    PENALTY = 10
     TURN = 1
     OBSERVATION_SPACE_VALUES = FV_LEN  # 4
     ACTION_SPACE_SIZE = NUM_ACTIONS
+
+    def best_of_p(self):
+        best_pair = None
+        min_dist = 0
+        for _ in range(self.p):
+            nxt_nodes = vertex_pair_non_edge(self.G_obj.G)
+            if best_pair == None:
+                best_pair = nxt_nodes
+                min_dist = np.linalg.norm(self.G_obj.fv[nxt_nodes[1]] - self.G_obj.fv[nxt_nodes[0]])
+            else:
+                dist = np.linalg.norm(self.G_obj.fv[nxt_nodes[1]] - self.G_obj.fv[nxt_nodes[0]])
+                if dist < min_dist:
+                    best_pair = nxt_nodes
+                    min_dist = dist
+        return nxt_nodes
 
     def reset(self):
         self.G_obj = Graph(self.K, self.N, self.DENSITY)
@@ -75,7 +91,8 @@ class GraphEnv:
         self.episode_step = 0
         self.cnt = 0
         self.G_obj.update_fv(self.METHOD, self.FV_LEN) # create fv
-        nodes = vertex_pair_non_edge(self.G_obj.G)
+        # Select nodes with the minimum distance among p pairs
+        nodes = self.best_of_p()
         observation = abs(self.G_obj.fv[nodes[1]] - self.G_obj.fv[nodes[0]]).reshape(1, -1)
         observation = tuple(observation.reshape(-1))
         return observation
@@ -98,7 +115,8 @@ class GraphEnv:
             edges = random.sample(self.G_obj.G.edges(), 1)
             nxt_nodes = (min(edges[0]), max(edges[0]))
         else:
-            nxt_nodes = vertex_pair_non_edge(self.G_obj.G)
+            # Select nodes with the minimum distance among p pairs
+            nxt_nodes = self.best_of_p()
         new_observation = abs(self.G_obj.fv[nxt_nodes[1]] - self.G_obj.fv[nxt_nodes[0]]).reshape(1, -1)
 
 
