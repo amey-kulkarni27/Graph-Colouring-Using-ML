@@ -29,7 +29,7 @@ BUCKETS = 50
 NUM_ACTIONS = 3 # 3rd action is don't do anything
 UPDATE_INTERVAL = 1 # update the feature vector after every _ turns
 
-HM_EPISODES = 25_000
+HM_EPISODES = 50_000
 REWARD = 20
 PENALTY = 10
 TURN = 1
@@ -138,7 +138,7 @@ plt.plot([i for i in range(len(moving_avg))], moving_avg)
 plt.ylabel(f"reward {SHOW_EVERY}")
 plt.xlabel("episode #")
 # plt.show()
-plt.savefig('varypen2.png')
+plt.savefig('qtable.png')
 
 with open(f"qtable-{int(time.time())}.pickle", "wb") as f:
     pickle.dump(q_table, f)
