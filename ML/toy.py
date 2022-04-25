@@ -9,9 +9,9 @@ import matplotlib.pyplot as plt
 
 
 num_graphs = 5
-k = 2
-n = 3 # Number of nodes in a single partition
-p = 0.0
+k = 10
+n = 10 # Number of nodes in a single partition
+p = 0.7
 error = 0.05
 errors = [0.1 * i for i in range(11)]
 probs = [0.1 * i for i in range(11)]

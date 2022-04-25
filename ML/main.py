@@ -26,7 +26,7 @@ for G, coords in G_train_list:
     Gdash = copy.deepcopy(G)
     t2 = timer()
     # print("Copy: ", round(t2 - t1, 2))
-    train(Gdash, coords, X, y, n, k-1, update_interval, "topksv", coin_toss=True, sub=False)
+    train(Gdash, coords, X, y, n, k-1, update_interval, "topksv", coin_toss=True, sub=True)
     t3 = timer()
     # print("Train time: ", round(t3 - t2, 2))
     # print()
@@ -45,7 +45,7 @@ for G, coords in G_test_list:
     # threshs = [0.3, 0.4, 0.5, 0.6, 0.7]
     threshs = [0.5, 0.5, 0.5, 0.5, 0.5]
     for trials in range(delta):
-        G_final, steps = test(G, coords, clf, n, k-1, update_interval, "topksv", threshs[trials], sub=False)
+        G_final, steps = test(G, coords, clf, n, k-1, update_interval, "topksv", threshs[trials], sub=True)
         new_num = num_nodes(G_final)
         acc = pairwise_accuracy(G_final, G, 1000)
         new_nodes.append(new_num)
