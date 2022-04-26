@@ -4,6 +4,7 @@ import networkx as nx
 import sys
 from matplotlib import style
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 style.use('ggplot')
 
 
@@ -12,7 +13,7 @@ from generate_kpart import gen_kpart, display_graph
 from feature_vector import feature_vector
 from operations import operations, vertex_pair_non_edge, get_action
 
-start_q_table = "RL/qtable-1650879401.pickle"
+start_q_table = "RL/qtable-1650882421.pickle"
 with open(start_q_table, "rb") as f:
         q_table = pickle.load(f)
 
@@ -30,7 +31,7 @@ colours = [0 for i in range(91)]
 def dist(fv, u, v):
     return np.linalg.norm(fv[u] - fv[v])
 
-for _ in range(num_tests):
+for _ in tqdm(range(num_tests)):
     G, coords = gen_kpart(k, n, p)
     while (vertex_pair_non_edge(G)) != False:
         fv = feature_vector(G, method=METHOD, k=FV_LEN)
