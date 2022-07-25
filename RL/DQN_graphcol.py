@@ -1,6 +1,6 @@
 import numpy as np
 import keras.backend as backend
-from keras.models import Sequential
+from keras.models import Sequential, model_from_json
 from keras.layers import Dense, Dropout, Conv2D, MaxPooling2D, Activation, Flatten
 from tensorflow.keras.optimizers import Adam
 from keras.callbacks import TensorBoard
@@ -9,6 +9,7 @@ from collections import deque
 import time
 import random
 from tqdm import tqdm
+import pickle
 import os
 from PIL import Image
 import cv2
@@ -20,18 +21,20 @@ from generate_kpart import gen_kpart, display_graph
 from feature_vector import feature_vector
 from operations import operations, vertex_pair_non_edge, get_action
 
+# Calculate loss per step
+# Print steps per episode
 
 DISCOUNT = 0.99
 REPLAY_MEMORY_SIZE = 50_000  # How many last steps to keep for model training (basically batch size)
 MIN_REPLAY_MEMORY_SIZE = 1_000  # Minimum number of steps in a memory to start training
 MINIBATCH_SIZE = 64  # How many steps (samples) to use for training
 UPDATE_TARGET_EVERY = 5  # Terminal states (end of episodes)
-MODEL_NAME = 'GC64x64N=5K=5_bestp'
-MIN_REWARD = -50  # For model save
+MODEL_NAME = 'N=30K=3'
+MIN_REWARD = -80  # For model save
 MEMORY_FRACTION = 0.20
 
 # Environment settings
-EPISODES = 5_000
+EPISODES = 2_000
 
 # Exploration settings
 epsilon = 1  # not a constant, going to be decayed
@@ -56,17 +59,16 @@ class GraphEnv:
     K = 5 # colours
     N = 5 # vertices of each colour
     DENSITY = 0.3
-    FV_LEN = N // 2 # length of feature vector
+    FV_LEN = 4 # length of feature vector
     METHOD = 'topk'
-    MAX_DIST = 2
-    BUCKETS = 50
     NUM_ACTIONS = 3 # 3rd action is don't do anything
     UPDATE_INTERVAL = 1 # update the feature vector after every _ turns
     p = 5 # We select the best pair out of the top p
 
-    REWARD = 20
-    PENALTY = 10
+    REWARD = 50
+    PENALTY = 100
     TURN = 1
+    THRESH = 1
     OBSERVATION_SPACE_VALUES = FV_LEN  # 4
     ACTION_SPACE_SIZE = NUM_ACTIONS
 
@@ -112,6 +114,7 @@ class GraphEnv:
                 self.G_obj.update_fv(self.METHOD, self.FV_LEN)
 
         if (vertex_pair_non_edge(self.G_obj.G)) == False:
+            # If a clique has been formed
             edges = random.sample(self.G_obj.G.edges(), 1)
             nxt_nodes = (min(edges[0]), max(edges[0]))
         else:
@@ -122,21 +125,19 @@ class GraphEnv:
 
         if (vertex_pair_non_edge(self.G_obj.G)) == False:
             cols = len(self.G_obj.G.nodes())
-            if cols == self.K:
-                reward = self.REWARD
-            elif cols == self.K + 1:
-                reward = self.REWARD // 4
-            else:
+            d_correct = cols - self.K
+            reward = self.REWARD // pow(2, d_correct)
+            print(cols, reward)
+            if reward < self.THRESH:
                 reward = -self.PENALTY
         else:
             reward = -self.TURN
-
         done = False
         if (vertex_pair_non_edge(self.G_obj.G)) == False or self.episode_step >= 200:
             done = True
 
         new_observation = tuple(new_observation.reshape(-1))
-        return new_observation, reward, done
+        return new_observation, reward, done, self.episode_step
 
     def render(self):
         display_graph(self.G_obj.G, self.G_obj.coords)
@@ -199,10 +200,19 @@ class ModifiedTensorBoard(TensorBoard):
 
 # Agent class
 class DQNAgent:
-    def __init__(self):
-
-        # Main model
-        self.model = self.create_model()
+    def __init__(self, load):
+        if load:
+            json_file = open('model.json', 'r')
+            loaded_model_json = json_file.read()
+            json_file.close()
+            self.model = model_from_json(loaded_model_json)
+            # load weights into new model
+            self.model.load_weights("model.h5")
+            self.model.compile(loss="mse", optimizer=Adam(lr=0.001), metrics=['accuracy'])
+            print("Loaded model from disk")
+        else:
+            # Main model
+            self.model = self.create_model()
 
         # Target network
         self.target_model = self.create_model()
@@ -292,9 +302,9 @@ class DQNAgent:
         state = (np.asarray(state)).reshape(-1, env.OBSERVATION_SPACE_VALUES)
         return self.model.predict(state)
 
-
-agent = DQNAgent()
-
+load = False
+agent = DQNAgent(load)
+streak = 0
 # Iterate over episodes
 for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
 
@@ -314,13 +324,20 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
 
         # This part stays mostly the same, the change is to query a model for Q values
         if np.random.random() > epsilon:
-            # Get action from Q table
+            # Get action from DQN
             action = np.argmax(agent.get_qs(current_state))
+            if action == 2:
+                streak += 1
+                if streak == 2:
+                    action = 1 ^ np.argmin(agent.get_qs(current_state))
+                    streak = 0
+            else:
+                streak = 0
         else:
             # Get random action
             action = np.random.randint(0, env.ACTION_SPACE_SIZE)
 
-        new_state, reward, done = env.step(action)
+        new_state, reward, done, tot_steps = env.step(action)
 
         # Transform new continous state to new discrete state and count reward
         episode_reward += reward
@@ -341,7 +358,8 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
         average_reward = sum(ep_rewards[-AGGREGATE_STATS_EVERY:])/len(ep_rewards[-AGGREGATE_STATS_EVERY:])
         min_reward = min(ep_rewards[-AGGREGATE_STATS_EVERY:])
         max_reward = max(ep_rewards[-AGGREGATE_STATS_EVERY:])
-        agent.tensorboard.update_stats(reward_avg=average_reward, reward_min=min_reward, reward_max=max_reward, epsilon=epsilon)
+        print(tot_steps)
+        agent.tensorboard.update_stats(reward_avg=average_reward, reward_min=min_reward, reward_max=max_reward, epsilon=epsilon, steps=tot_steps)
 
         # Save model, but only when min reward is greater or equal a set value
         if min_reward >= MIN_REWARD:
@@ -352,6 +370,21 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
         epsilon *= EPSILON_DECAY
         epsilon = max(MIN_EPSILON, epsilon)
 
+    if episode % AGGREGATE_STATS_EVERY == 0:
+        model_json = agent.model.to_json()
+        with open("model.json", "w") as json_file:
+            json_file.write(model_json)
+        # serialize weights to HDF5
+        agent.model.save_weights("model.h5")
+        print("Saved model to disk")
+
+# Saving model
+model_json = agent.model.to_json()
+with open("model.json", "w") as json_file:
+    json_file.write(model_json)
+# serialize weights to HDF5
+agent.model.save_weights("model.h5")
+print("Saved model to disk")
 
 # 1) Let the observation space be a representation (something like Graph2vec) of the graph
 # 2) Feature Vector for the graph (i) Graph2Vec, (ii) Hand-crafted feature vector
