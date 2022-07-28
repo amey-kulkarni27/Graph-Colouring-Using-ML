@@ -34,7 +34,7 @@ MIN_REWARD = -80  # For model save
 MEMORY_FRACTION = 0.20
 
 # Environment settings
-EPISODES = 2_000
+EPISODES = 10_000
 
 # Exploration settings
 epsilon = 1  # not a constant, going to be decayed
@@ -42,7 +42,7 @@ EPSILON_DECAY = 0.99975
 MIN_EPSILON = 0.001
 
 #  Stats settings
-AGGREGATE_STATS_EVERY = 50  # episodes
+AGGREGATE_STATS_EVERY = 5  # episodes
 SHOW_PREVIEW = False
 
 class Graph:
@@ -65,13 +65,14 @@ class GraphEnv:
     UPDATE_INTERVAL = 1 # update the feature vector after every _ turns
     p = 5 # We select the best pair out of the top p
 
-    REWARD = 50
+    REWARD = 200
     PENALTY = 100
     TURN = 1
     THRESH = 1
+    BASE = 1.3
     OBSERVATION_SPACE_VALUES = FV_LEN  # 4
     ACTION_SPACE_SIZE = NUM_ACTIONS
-    MAX_STEPS = 100
+    MAX_STEPS = 200
 
     def best_of_p(self):
         best_pair = None
@@ -128,7 +129,7 @@ class GraphEnv:
         if (vertex_pair_non_edge(self.G_obj.G)) == False:
             cols = len(self.G_obj.G.nodes())
             d_correct = cols - self.K
-            reward = self.REWARD // pow(2, d_correct)
+            reward = self.REWARD // pow(self.BASE, d_correct)
             print(cols, reward)
             if reward < self.THRESH:
                 reward = -self.PENALTY
@@ -366,7 +367,6 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
         max_reward = max(ep_rewards[-AGGREGATE_STATS_EVERY:])
         avg_steps = sum(steps_list[-AGGREGATE_STATS_EVERY:])/len(steps_list[-AGGREGATE_STATS_EVERY:])
         avg_cols = sum(cols_list[-AGGREGATE_STATS_EVERY:])/len(cols_list[-AGGREGATE_STATS_EVERY:])
-        print(tot_steps)
         agent.tensorboard.update_stats(reward_avg=average_reward, reward_min=min_reward, reward_max=max_reward, epsilon=epsilon, steps=avg_steps, cols=avg_cols)
 
         # Save model, but only when min reward is greater or equal a set value
