@@ -29,7 +29,7 @@ REPLAY_MEMORY_SIZE = 50_000  # How many last steps to keep for model training (b
 MIN_REPLAY_MEMORY_SIZE = 1_000  # Minimum number of steps in a memory to start training
 MINIBATCH_SIZE = 64  # How many steps (samples) to use for training
 UPDATE_TARGET_EVERY = 5  # Terminal states (end of episodes)
-MODEL_NAME = 'N=30K=3'
+MODEL_NAME = 'N=25K=4'
 MIN_REWARD = -80  # For model save
 MEMORY_FRACTION = 0.20
 
@@ -56,8 +56,8 @@ class Graph:
         return np.linalg.norm(self.fv[u] - self.fv[v])
 
 class GraphEnv:
-    K = 5 # colours
-    N = 5 # vertices of each colour
+    K = 4 # colours
+    N = 25 # vertices of each colour
     DENSITY = 0.3
     FV_LEN = 4 # length of feature vector
     METHOD = 'topk'
@@ -71,6 +71,7 @@ class GraphEnv:
     THRESH = 1
     OBSERVATION_SPACE_VALUES = FV_LEN  # 4
     ACTION_SPACE_SIZE = NUM_ACTIONS
+    MAX_STEPS = 100
 
     def best_of_p(self):
         best_pair = None
@@ -101,6 +102,7 @@ class GraphEnv:
 
     def step(self, action):
         self.episode_step += 1
+        cols = self.N * self.K # returning number of colours
         if action < 2:
             node_pair = vertex_pair_non_edge(self.G_obj.G)
             self.G_obj.G = operations(self.G_obj.G, action, node_pair)
@@ -133,11 +135,11 @@ class GraphEnv:
         else:
             reward = -self.TURN
         done = False
-        if (vertex_pair_non_edge(self.G_obj.G)) == False or self.episode_step >= 200:
+        if (vertex_pair_non_edge(self.G_obj.G)) == False or self.episode_step >= self.MAX_STEPS:
             done = True
 
         new_observation = tuple(new_observation.reshape(-1))
-        return new_observation, reward, done, self.episode_step
+        return new_observation, reward, done, self.episode_step, cols
 
     def render(self):
         display_graph(self.G_obj.G, self.G_obj.coords)
@@ -147,6 +149,8 @@ env = GraphEnv()
 
 # For stats
 ep_rewards = [-200]
+steps_list = [env.MAX_STEPS]
+cols_list = [env.N * env.K]
 
 # For more repetitive results
 random.seed(1)
@@ -337,7 +341,7 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
             # Get random action
             action = np.random.randint(0, env.ACTION_SPACE_SIZE)
 
-        new_state, reward, done, tot_steps = env.step(action)
+        new_state, reward, done, tot_steps, final_cols = env.step(action)
 
         # Transform new continous state to new discrete state and count reward
         episode_reward += reward
@@ -354,12 +358,16 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
 
     # Append episode reward to a list and log stats (every given number of episodes)
     ep_rewards.append(episode_reward)
+    steps_list.append(tot_steps)
+    cols_list.append(final_cols)
     if not episode % AGGREGATE_STATS_EVERY or episode == 1:
         average_reward = sum(ep_rewards[-AGGREGATE_STATS_EVERY:])/len(ep_rewards[-AGGREGATE_STATS_EVERY:])
         min_reward = min(ep_rewards[-AGGREGATE_STATS_EVERY:])
         max_reward = max(ep_rewards[-AGGREGATE_STATS_EVERY:])
+        avg_steps = sum(steps_list[-AGGREGATE_STATS_EVERY:])/len(steps_list[-AGGREGATE_STATS_EVERY:])
+        avg_cols = sum(cols_list[-AGGREGATE_STATS_EVERY:])/len(cols_list[-AGGREGATE_STATS_EVERY:])
         print(tot_steps)
-        agent.tensorboard.update_stats(reward_avg=average_reward, reward_min=min_reward, reward_max=max_reward, epsilon=epsilon, steps=tot_steps)
+        agent.tensorboard.update_stats(reward_avg=average_reward, reward_min=min_reward, reward_max=max_reward, epsilon=epsilon, steps=avg_steps, cols=avg_cols)
 
         # Save model, but only when min reward is greater or equal a set value
         if min_reward >= MIN_REWARD:
