@@ -43,6 +43,7 @@ MIN_EPSILON = 0.001
 
 #  Stats settings
 AGGREGATE_STATS_EVERY = 5  # episodes
+MODEL_SAVE_EVERY = 50
 SHOW_PREVIEW = False
 
 class Graph:
@@ -206,13 +207,14 @@ class ModifiedTensorBoard(TensorBoard):
 # Agent class
 class DQNAgent:
     def __init__(self, load):
-        if load:
-            json_file = open('model.json', 'r')
+        file_name = f"model-{MODEL_NAME}.json"
+        if load and os.path.isfile(file_name):
+            json_file = open(file_name, 'r')
             loaded_model_json = json_file.read()
             json_file.close()
             self.model = model_from_json(loaded_model_json)
             # load weights into new model
-            self.model.load_weights("model.h5")
+            self.model.load_weights(f"model-{MODEL_NAME}.h5")
             self.model.compile(loss="mse", optimizer=Adam(lr=0.001), metrics=['accuracy'])
             print("Loaded model from disk")
         else:
@@ -307,7 +309,7 @@ class DQNAgent:
         state = (np.asarray(state)).reshape(-1, env.OBSERVATION_SPACE_VALUES)
         return self.model.predict(state)
 
-load = False
+load = True
 agent = DQNAgent(load)
 streak = 0
 # Iterate over episodes
@@ -361,7 +363,7 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
     ep_rewards.append(episode_reward)
     steps_list.append(tot_steps)
     cols_list.append(final_cols)
-    if not episode % AGGREGATE_STATS_EVERY or episode == 1:
+    if episode % AGGREGATE_STATS_EVERY == 0 or episode == 1:
         average_reward = sum(ep_rewards[-AGGREGATE_STATS_EVERY:])/len(ep_rewards[-AGGREGATE_STATS_EVERY:])
         min_reward = min(ep_rewards[-AGGREGATE_STATS_EVERY:])
         max_reward = max(ep_rewards[-AGGREGATE_STATS_EVERY:])
@@ -370,29 +372,23 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
         agent.tensorboard.update_stats(reward_avg=average_reward, reward_min=min_reward, reward_max=max_reward, epsilon=epsilon, steps=avg_steps, cols=avg_cols)
 
         # Save model, but only when min reward is greater or equal a set value
-        if min_reward >= MIN_REWARD:
-            agent.model.save(f'models/{MODEL_NAME}__{max_reward:_>7.2f}max_{average_reward:_>7.2f}avg_{min_reward:_>7.2f}min__{int(time.time())}.model')
+        # if min_reward >= MIN_REWARD:
+        #     agent.model.save(f'models/{MODEL_NAME}__{max_reward:_>7.2f}max_{average_reward:_>7.2f}avg_{min_reward:_>7.2f}min__{int(time.time())}.model')
 
     # Decay epsilon
     if epsilon > MIN_EPSILON:
         epsilon *= EPSILON_DECAY
         epsilon = max(MIN_EPSILON, epsilon)
 
-    if episode % AGGREGATE_STATS_EVERY == 0:
+    # Saving model
+    if episode % MODEL_SAVE_EVERY == 0:
         model_json = agent.model.to_json()
-        with open("model.json", "w") as json_file:
+        with open(f"model-{MODEL_NAME}.json", "w") as json_file:
             json_file.write(model_json)
+        # agent.model.save(f'models/{MODEL_NAME}.model')
         # serialize weights to HDF5
-        agent.model.save_weights("model.h5")
+        agent.model.save_weights(f"model-{MODEL_NAME}.h5")
         print("Saved model to disk")
-
-# Saving model
-model_json = agent.model.to_json()
-with open("model.json", "w") as json_file:
-    json_file.write(model_json)
-# serialize weights to HDF5
-agent.model.save_weights("model.h5")
-print("Saved model to disk")
 
 # 1) Let the observation space be a representation (something like Graph2vec) of the graph
 # 2) Feature Vector for the graph (i) Graph2Vec, (ii) Hand-crafted feature vector
